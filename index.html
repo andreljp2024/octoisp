@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CondoFlow | Gestão de Condomínio</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="layout">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="brand__logo">CF</div>
+          <div>
+            <h1>CondoFlow</h1>
+            <p>Painel do Síndico</p>
+          </div>
+        </div>
+
+        <nav class="menu">
+          <button class="menu__item active" data-section="dashboard">Dashboard</button>
+          <button class="menu__item" data-section="moradores">Moradores</button>
+          <button class="menu__item" data-section="financeiro">Financeiro</button>
+          <button class="menu__item" data-section="manutencao">Manutenção</button>
+          <button class="menu__item" data-section="reservas">Reservas</button>
+          <button class="menu__item" data-section="comunicados">Comunicados</button>
+        </nav>
+      </aside>
+
+      <main class="content">
+        <header class="topbar">
+          <div>
+            <h2 id="title">Dashboard</h2>
+            <p id="subtitle">Visão geral do condomínio</p>
+          </div>
+          <div class="topbar__actions">
+            <input id="search" type="search" placeholder="Buscar por morador, bloco ou protocolo" />
+            <button class="primary" id="newAction">Nova ação</button>
+            <button class="ghost" id="resetDemo">Reset demo</button>
+          </div>
+        </header>
+
+        <section id="dashboard" class="section active">
+          <div class="cards-grid" id="kpiCards"></div>
+
+          <div class="panel-grid two-cols">
+            <article class="panel">
+              <h3>Inadimplência por mês</h3>
+              <div id="chart"></div>
+            </article>
+            <article class="panel">
+              <h3>Tarefas urgentes</h3>
+              <ul id="urgentTasks" class="list"></ul>
+            </article>
+          </div>
+        </section>
+
+        <section id="moradores" class="section">
+          <article class="panel">
+            <h3>Cadastro de moradores</h3>
+            <form id="residentForm" class="form-grid">
+              <input name="nome" placeholder="Nome completo" required />
+              <input name="unidade" placeholder="Unidade (ex: A-302)" required />
+              <input name="telefone" placeholder="Telefone" required />
+              <button class="primary" type="submit">Adicionar morador</button>
+            </form>
+            <table>
+              <thead>
+                <tr>
+                  <th>Nome</th>
+                  <th>Unidade</th>
+                  <th>Telefone</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="residentRows"></tbody>
+            </table>
+          </article>
+        </section>
+
+        <section id="financeiro" class="section">
+          <div class="panel-grid two-cols">
+            <article class="panel">
+              <h3>Resumo financeiro</h3>
+              <ul id="financialSummary" class="list"></ul>
+            </article>
+            <article class="panel">
+              <h3>Boletos recentes</h3>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Unidade</th>
+                    <th>Competência</th>
+                    <th>Valor</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="billRows"></tbody>
+              </table>
+            </article>
+          </div>
+        </section>
+
+        <section id="manutencao" class="section">
+          <article class="panel">
+            <h3>Chamados de manutenção</h3>
+            <ul id="maintenanceList" class="list"></ul>
+          </article>
+        </section>
+
+        <section id="reservas" class="section">
+          <article class="panel">
+            <h3>Reservas de áreas comuns</h3>
+            <ul id="bookingList" class="list"></ul>
+          </article>
+        </section>
+
+        <section id="comunicados" class="section">
+          <article class="panel">
+            <h3>Comunicados enviados</h3>
+            <ul id="noticeList" class="list"></ul>
+          </article>
+        </section>
+      </main>
+    </div>
+
+    <template id="statusTagTemplate">
+      <span class="status-tag"></span>
+    </template>
+
+    <div id="toast" class="toast" aria-live="polite"></div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
