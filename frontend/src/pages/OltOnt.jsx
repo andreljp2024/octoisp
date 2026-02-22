@@ -426,6 +426,11 @@ function OltOnt() {
                 </div>
               </button>
             ))}
+            {filtered.length === 0 && (
+              <div className="rounded-xl border border-dashed border-gray-200 p-4 text-sm text-gray-500">
+                Nenhum equipamento encontrado com os filtros selecionados.
+              </div>
+            )}
           </div>
         </div>
 

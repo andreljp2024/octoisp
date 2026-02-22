@@ -67,6 +67,29 @@ const mergeSettings = (base, incoming) => ({
   integrations: { ...base.integrations, ...(incoming.integrations || {}) }
 });
 
+const MAX_LOGO_CHARS = 3_000_000;
+
+const sanitizeLogoUrl = (value) => {
+  if (!value) return '';
+  const trimmed = String(value).trim();
+  if (trimmed.startsWith('data:image/')) return trimmed;
+  try {
+    const parsed = new URL(trimmed);
+    if (['http:', 'https:'].includes(parsed.protocol)) return trimmed;
+  } catch {
+    return '';
+  }
+  return '';
+};
+
+const sanitizeGeneral = (general) => {
+  const logoUrl = sanitizeLogoUrl(general?.logoUrl || '');
+  return {
+    ...general,
+    logoUrl
+  };
+};
+
 const maskSecret = (value) => {
   if (!value) return '';
   const tail = value.slice(-4);
@@ -88,6 +111,7 @@ const applySecretUpdates = (current, incoming) => {
 
 const buildSafeSettings = (settings) => ({
   ...settings,
+  general: sanitizeGeneral(settings.general || {}),
   integrations: {
     ...settings.integrations,
     supabaseAnonKey: settings.integrations.supabaseAnonKey
@@ -143,6 +167,10 @@ router.put('/', requirePermission('settings.manage'), async (req, res) => {
     );
 
     const incoming = mergeSettings(defaultSettings, req.body || {});
+    if (incoming.general?.logoUrl && incoming.general.logoUrl.length > MAX_LOGO_CHARS) {
+      return res.status(413).json({ error: 'Logomarca muito grande.' });
+    }
+    incoming.general = sanitizeGeneral(incoming.general || {});
     const safeIntegrations = applySecretUpdates(
       existingSettings.integrations,
       incoming.integrations
