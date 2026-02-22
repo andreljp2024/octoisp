@@ -115,6 +115,19 @@ const Settings = () => {
     );
   }, [preferences]);
 
+  useEffect(() => {
+    if (loading) return;
+    const hash = window.location.hash;
+    if (!hash) return;
+    const id = hash.replace('#', '');
+    const target = document.getElementById(id);
+    if (target) {
+      setTimeout(() => {
+        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    }
+  }, [loading]);
+
   const updateSection = (section, field, value) => {
     setSettings((prev) => ({
       ...prev,
@@ -505,7 +518,7 @@ const Settings = () => {
           </div>
         </div>
 
-        <div className="rounded-lg bg-white p-6 shadow">
+        <div id="alertas-config" className="scroll-mt-24 rounded-lg bg-white p-6 shadow">
           <SectionHeader
             icon={BoltIcon}
             title="Alertas e Escalonamento"

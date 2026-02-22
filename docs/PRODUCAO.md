@@ -125,6 +125,18 @@ Observação de segurança:
 - Para Let’s Encrypt via assistente, defina `SETUP_HOST_DIR` com o caminho
   absoluto do projeto no host.
 
+### Nota sobre preview e cache do PWA
+
+Após mudanças no frontend, reconstrua o preview e limpe o cache do Service Worker:
+
+```
+docker compose -f docker-compose.preview.yml down
+docker compose -f docker-compose.preview.yml up -d --build
+```
+
+No navegador: DevTools → Application → Service Workers → Unregister, depois
+Application → Storage → Clear site data, e recarregue com `Ctrl+Shift+R`.
+
 ## 12) TLS automático (Let’s Encrypt)
 
 Ao escolher Let’s Encrypt no assistente:

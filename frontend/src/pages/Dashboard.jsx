@@ -1,8 +1,9 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useQuery } from 'react-query';
 import {
   ArrowTrendingUpIcon,
   ArrowsPointingOutIcon,
+  ArrowsPointingInIcon,
   SignalIcon,
   ServerStackIcon,
   ExclamationTriangleIcon,
@@ -41,6 +42,10 @@ const formatRelativeTime = (timestamp) => {
 };
 
 function Dashboard() {
+  const [expanded, setExpanded] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return window.localStorage.getItem('octoisp.dashboard.expanded') === '1';
+  });
   const { data: statsData } = useQuery('dashboardStats', fetchDashboardStats, {
     refetchInterval: 30000, // Atualizar a cada 30 segundos
   });
@@ -65,6 +70,35 @@ function Dashboard() {
     blue: { bg: 'bg-blue-100', text: 'text-blue-600' },
     red: { bg: 'bg-red-100', text: 'text-red-600' },
   };
+
+  useEffect(() => {
+    const body = document.body;
+    const container = document.querySelector('.app-shell main > div');
+    if (expanded) {
+      body.classList.add('dashboard-expanded');
+      if (container) {
+        container.style.maxWidth = '100%';
+        container.style.paddingLeft = '1.5rem';
+        container.style.paddingRight = '1.5rem';
+      }
+    } else {
+      body.classList.remove('dashboard-expanded');
+      if (container) {
+        container.style.maxWidth = '';
+        container.style.paddingLeft = '';
+        container.style.paddingRight = '';
+      }
+    }
+    window.localStorage.setItem('octoisp.dashboard.expanded', expanded ? '1' : '0');
+    return () => {
+      body.classList.remove('dashboard-expanded');
+      if (container) {
+        container.style.maxWidth = '';
+        container.style.paddingLeft = '';
+        container.style.paddingRight = '';
+      }
+    };
+  }, [expanded]);
 
   const StatCard = ({ title, value, icon: Icon, change, color = 'blue' }) => {
     const tone = colorClasses[color] || colorClasses.blue;
@@ -105,10 +139,15 @@ function Dashboard() {
         <div className="mt-4 flex sm:mt-0">
           <button
             type="button"
+            onClick={() => setExpanded((prev) => !prev)}
             className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sky-500"
           >
-            <ArrowsPointingOutIcon className="-ml-1 mr-2 h-5 w-5 text-gray-500" />
-            Expandir
+            {expanded ? (
+              <ArrowsPointingInIcon className="-ml-1 mr-2 h-5 w-5 text-gray-500" />
+            ) : (
+              <ArrowsPointingOutIcon className="-ml-1 mr-2 h-5 w-5 text-gray-500" />
+            )}
+            {expanded ? 'Recolher' : 'Expandir'}
           </button>
         </div>
       </div>

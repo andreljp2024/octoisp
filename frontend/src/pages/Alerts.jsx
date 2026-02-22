@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 import {
   ExclamationTriangleIcon,
   BellAlertIcon,
@@ -91,6 +92,7 @@ const severityStyles = {
 
 const Alerts = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [severityFilter, setSeverityFilter] = useState('all');
@@ -98,6 +100,7 @@ const Alerts = () => {
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [configOpen, setConfigOpen] = useState(false);
 
   const openView = (alert) => {
     setSelected(alert);
@@ -211,6 +214,7 @@ const Alerts = () => {
         </div>
         <button
           type="button"
+          onClick={() => setConfigOpen(true)}
           className="inline-flex items-center justify-center rounded-md border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
         >
           <AdjustmentsHorizontalIcon className="-ml-1 mr-2 h-5 w-5" />
@@ -379,6 +383,45 @@ const Alerts = () => {
             </div>
           </div>
         ) : null}
+      </Modal>
+
+      <Modal
+        open={configOpen}
+        onClose={() => setConfigOpen(false)}
+        title="Configurar alertas"
+        widthClass="max-w-lg"
+        actions={
+          <>
+            <button
+              type="button"
+              onClick={() => setConfigOpen(false)}
+              className="rounded-md border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            >
+              Fechar
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setConfigOpen(false);
+                navigate('/settings#alertas-config');
+              }}
+              className="rounded-md border border-transparent bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-700"
+            >
+              Abrir configurações
+            </button>
+          </>
+        }
+      >
+        <div className="space-y-3 text-sm text-gray-600">
+          <p>
+            Os ajustes completos de alertas ficam em <strong>Configurações</strong> →{' '}
+            <strong>Alertas e Escalonamento</strong>.
+          </p>
+          <p>
+            Lá você define deduplicação, escalonamento, janela de manutenção e canais de
+            notificação.
+          </p>
+        </div>
       </Modal>
     </div>
   );
