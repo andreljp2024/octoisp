@@ -45,6 +45,7 @@ Em `Configurações`, ajuste:
 
 - Tema escuro para salas de NOC.
 - Paletas visuais (Skyline, Aurora, Circuit, Solar, Ocean).
+- Upload da logomarca para personalização do ambiente.
 - Modo compacto para mais densidade de informação.
 - Redução de movimento para acessibilidade.
 - Alto contraste para ambientes com baixa iluminação.

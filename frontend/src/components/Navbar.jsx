@@ -4,6 +4,7 @@ import { Disclosure, Menu, Transition } from '@headlessui/react';
 import { Bars3Icon, BellIcon, MoonIcon, SunIcon, QuestionMarkCircleIcon } from '@heroicons/react/24/outline';
 import { NavLink } from 'react-router-dom';
 import { UserContext } from '../App';
+import { useBranding } from '../lib/branding';
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ');
@@ -11,6 +12,7 @@ function classNames(...classes) {
 
 export default function Navbar({ onMenuClick, onLogout, onHelp }) {
   const userContext = useContext(UserContext);
+  const branding = useBranding();
   const userProfile = userContext?.userProfile || {
     name: 'Operador',
     email: 'operador@octoisp.local',
@@ -62,7 +64,16 @@ export default function Navbar({ onMenuClick, onLogout, onHelp }) {
                     <span className="sr-only">Abrir menu principal</span>
                     <Bars3Icon className="block h-6 w-6" aria-hidden="true" />
                   </button>
-                  <span className="hidden lg:block text-slate-900 text-xl font-bold">OctoISP</span>
+                  <div className="hidden lg:flex items-center gap-2">
+                    {branding.logoUrl ? (
+                      <img
+                        src={branding.logoUrl}
+                        alt="Logomarca"
+                        className="h-8 w-8 rounded-lg border border-slate-200 object-contain bg-white"
+                      />
+                    ) : null}
+                    <span className="text-slate-900 text-xl font-bold">{branding.name}</span>
+                  </div>
                 </div>
                 <div className="hidden sm:ml-6 sm:block">
                   <div className="flex space-x-4">

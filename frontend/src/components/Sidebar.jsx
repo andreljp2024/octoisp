@@ -14,6 +14,7 @@ import {
   SignalIcon,
   QuestionMarkCircleIcon
 } from '@heroicons/react/24/outline';
+import { useBranding } from '../lib/branding';
 
 const navigation = [
   { name: 'Dashboard NOC', href: '/dashboard', icon: HomeIcon, permission: 'dashboard.view' },
@@ -40,6 +41,7 @@ function classNames(...classes) {
 }
 
 function Sidebar({ isOpen, onClose, hasPermission, collapsed, onToggleCollapse }) {
+  const branding = useBranding();
   return (
     <>
       {/* Menu fora da tela para mobile */}
@@ -76,11 +78,19 @@ function Sidebar({ isOpen, onClose, hasPermission, collapsed, onToggleCollapse }
           <div className="flex-1 h-0 pt-5 pb-4 overflow-y-auto">
             <div className="flex-shrink-0 flex items-center px-4">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-sky-500 to-indigo-500 text-white font-bold">
-                  OI
-                </div>
+                {branding.logoUrl ? (
+                  <img
+                    src={branding.logoUrl}
+                    alt="Logomarca"
+                    className="h-10 w-10 rounded-xl border border-slate-200 object-contain bg-white"
+                  />
+                ) : (
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-sky-500 to-indigo-500 text-white font-bold">
+                    OI
+                  </div>
+                )}
                 <div>
-                  <h1 className="text-lg font-bold text-slate-900">OctoISP</h1>
+                  <h1 className="text-lg font-bold text-slate-900">{branding.name}</h1>
                   <p className="text-xs text-slate-500">NOC Platform</p>
                 </div>
               </div>
@@ -127,11 +137,19 @@ function Sidebar({ isOpen, onClose, hasPermission, collapsed, onToggleCollapse }
           <div className="h-0 flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
             <div className="flex items-center flex-shrink-0 px-4">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-sky-500 to-indigo-500 text-white font-bold">
-                  OI
-                </div>
+                {branding.logoUrl ? (
+                  <img
+                    src={branding.logoUrl}
+                    alt="Logomarca"
+                    className="h-10 w-10 rounded-xl border border-slate-200 object-contain bg-white"
+                  />
+                ) : (
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-sky-500 to-indigo-500 text-white font-bold">
+                    OI
+                  </div>
+                )}
                 <div className={collapsed ? 'hidden' : ''}>
-                  <h1 className="text-lg font-bold text-slate-900">OctoISP</h1>
+                  <h1 className="text-lg font-bold text-slate-900">{branding.name}</h1>
                   <p className="text-xs text-slate-500">NOC Platform</p>
                 </div>
               </div>

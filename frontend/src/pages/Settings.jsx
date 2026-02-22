@@ -17,6 +17,7 @@ const defaultSettings = {
     timezone: 'America/Sao_Paulo',
     dateFormat: 'DD/MM/YYYY',
     language: 'pt-BR',
+    logoUrl: '',
   },
   notifications: {
     emailEnabled: true,
@@ -97,6 +98,7 @@ const Settings = () => {
       .then((data) => {
         setSettings(data);
         window.localStorage.setItem('octoisp.settings', JSON.stringify(data));
+        window.dispatchEvent(new CustomEvent('octoisp-settings-updated'));
       })
       .catch(() => null)
       .finally(() => setLoading(false));
@@ -228,6 +230,7 @@ const Settings = () => {
         const data = await response.json();
         setSettings(data);
         window.localStorage.setItem('octoisp.settings', JSON.stringify(data));
+        window.dispatchEvent(new CustomEvent('octoisp-settings-updated'));
         toast.success('Configurações salvas.');
       } else {
         toast.error('Falha ao salvar configurações.');
@@ -335,6 +338,58 @@ const Settings = () => {
                 onChange={(event) => updateSection('general', 'dateFormat', event.target.value)}
                 className="mt-2 w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-sky-500"
               />
+            </div>
+            <div className="sm:col-span-2">
+              <label className="text-sm font-medium text-gray-700">Logomarca do sistema</label>
+              <div className="mt-3 flex flex-wrap items-center gap-4 rounded-lg border border-dashed border-slate-200 p-4">
+                {settings.general.logoUrl ? (
+                  <img
+                    src={settings.general.logoUrl}
+                    alt="Logomarca atual"
+                    className="h-16 w-16 rounded-xl border border-slate-200 bg-white object-contain"
+                  />
+                ) : (
+                  <div className="flex h-16 w-16 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-xs text-slate-400">
+                    Sem logo
+                  </div>
+                )}
+                <div className="flex flex-col gap-2">
+                  <label className="inline-flex cursor-pointer items-center justify-center rounded-md border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(event) => {
+                        const file = event.target.files?.[0];
+                        if (!file) return;
+                        const maxSize = 1024 * 1024 * 2;
+                        if (file.size > maxSize) {
+                          toast.error('A imagem deve ter no máximo 2MB.');
+                          return;
+                        }
+                        const reader = new FileReader();
+                        reader.onload = () => {
+                          updateSection('general', 'logoUrl', reader.result || '');
+                        };
+                        reader.readAsDataURL(file);
+                      }}
+                    />
+                    Fazer upload
+                  </label>
+                  {settings.general.logoUrl && (
+                    <button
+                      type="button"
+                      onClick={() => updateSection('general', 'logoUrl', '')}
+                      className="inline-flex items-center justify-center rounded-md border border-red-200 px-3 py-2 text-xs font-medium text-red-600 hover:bg-red-50"
+                    >
+                      Remover logo
+                    </button>
+                  )}
+                </div>
+                <div className="text-xs text-gray-500">
+                  PNG ou SVG recomendado. Máx: 2MB.
+                </div>
+              </div>
             </div>
           </div>
         </div>

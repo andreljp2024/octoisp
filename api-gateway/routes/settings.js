@@ -8,7 +8,8 @@ const defaultSettings = {
     companyName: 'OctoISP',
     timezone: 'America/Sao_Paulo',
     dateFormat: 'DD/MM/YYYY',
-    language: 'pt-BR'
+    language: 'pt-BR',
+    logoUrl: ''
   },
   notifications: {
     emailEnabled: true,
