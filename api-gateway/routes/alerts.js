@@ -69,6 +69,7 @@ router.get('/', requirePermission('alerts.view'), async (req, res) => {
 router.post('/:id/acknowledge', requirePermission('alerts.manage'), async (req, res) => {
   try {
     const { id } = req.params;
+    const isGlobalAdmin = req.role === 'admin_global';
     const result = await withUser(req.user.id, (client) =>
       client.query(
         `
@@ -78,9 +79,10 @@ router.post('/:id/acknowledge', requirePermission('alerts.manage'), async (req, 
               acknowledged_by = $2,
               updated_at = NOW()
           WHERE id = $1
+          ${isGlobalAdmin ? '' : 'AND provider_id = $3'}
           RETURNING *
         `,
-        [id, req.user.id]
+        isGlobalAdmin ? [id, req.user.id] : [id, req.user.id, req.tenantId]
       )
     );
 
@@ -105,6 +107,7 @@ router.post('/:id/acknowledge', requirePermission('alerts.manage'), async (req, 
 router.post('/:id/resolve', requirePermission('alerts.manage'), async (req, res) => {
   try {
     const { id } = req.params;
+    const isGlobalAdmin = req.role === 'admin_global';
     const result = await withUser(req.user.id, (client) =>
       client.query(
         `
@@ -114,9 +117,10 @@ router.post('/:id/resolve', requirePermission('alerts.manage'), async (req, res)
               resolved_by = $2,
               updated_at = NOW()
           WHERE id = $1
+          ${isGlobalAdmin ? '' : 'AND provider_id = $3'}
           RETURNING *
         `,
-        [id, req.user.id]
+        isGlobalAdmin ? [id, req.user.id] : [id, req.user.id, req.tenantId]
       )
     );
 
@@ -141,8 +145,17 @@ router.post('/:id/resolve', requirePermission('alerts.manage'), async (req, res)
 router.delete('/:id', requirePermission('alerts.manage'), async (req, res) => {
   try {
     const { id } = req.params;
+    const isGlobalAdmin = req.role === 'admin_global';
     const result = await withUser(req.user.id, (client) =>
-      client.query('DELETE FROM alerts WHERE id = $1 RETURNING id', [id])
+      client.query(
+        `
+          DELETE FROM alerts
+          WHERE id = $1
+          ${isGlobalAdmin ? '' : 'AND provider_id = $2'}
+          RETURNING id
+        `,
+        isGlobalAdmin ? [id] : [id, req.tenantId]
+      )
     );
 
     if (!result.rowCount) {
