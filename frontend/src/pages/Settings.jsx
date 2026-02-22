@@ -10,6 +10,7 @@ import {
   BoltIcon,
 } from '@heroicons/react/24/outline';
 import toast from 'react-hot-toast';
+import { applyThemePreferences, persistThemePreferences } from '../lib/theme';
 
 const defaultSettings = {
   general: {
@@ -105,18 +106,8 @@ const Settings = () => {
   }, []);
 
   useEffect(() => {
-    window.localStorage.setItem('octoisp.preferences', JSON.stringify(preferences));
-    const body = document.body;
-    const palettes = ['sky', 'aurora', 'circuit', 'solar', 'ocean'];
-    body.classList.toggle('app-compact', preferences.compact);
-    body.classList.toggle('app-reduced-motion', preferences.reducedMotion);
-    body.classList.toggle('app-glow', preferences.glow);
-    body.classList.toggle('app-high-contrast', preferences.highContrast);
-    body.classList.toggle('theme-dark', preferences.darkMode);
-    palettes.forEach((palette) => body.classList.remove(`theme-${palette}`));
-    body.classList.add(`theme-${preferences.palette || 'sky'}`);
-    window.localStorage.setItem('octoisp.theme', preferences.darkMode ? 'dark' : 'light');
-    window.localStorage.setItem('octoisp.themePalette', preferences.palette || 'sky');
+    persistThemePreferences(preferences);
+    applyThemePreferences(preferences);
     window.dispatchEvent(
       new CustomEvent('octoisp-theme-change', { detail: { dark: preferences.darkMode } })
     );

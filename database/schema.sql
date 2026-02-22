@@ -130,7 +130,7 @@ CREATE TABLE devices (
     notes TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    UNIQUE(serial_number)
+    UNIQUE(provider_id, serial_number)
 );
 
 -- Network tools history

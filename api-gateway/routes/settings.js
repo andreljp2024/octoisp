@@ -1,4 +1,6 @@
 const express = require('express');
+const dns = require('dns').promises;
+const net = require('net');
 const router = express.Router();
 const { withUser } = require('../db');
 const { requirePermission } = require('../middleware/requirePermission');
@@ -88,6 +90,38 @@ const sanitizeGeneral = (general) => {
     ...general,
     logoUrl
   };
+};
+
+const isPrivateIp = (ip) => {
+  if (net.isIP(ip) === 4) {
+    const parts = ip.split('.').map((part) => Number(part));
+    if (parts.length !== 4 || parts.some((part) => Number.isNaN(part))) return true;
+    const [a, b] = parts;
+    if (a === 10) return true;
+    if (a === 127) return true;
+    if (a === 0) return true;
+    if (a === 169 && b === 254) return true;
+    if (a === 172 && b >= 16 && b <= 31) return true;
+    if (a === 192 && b === 168) return true;
+    if (a === 100 && b >= 64 && b <= 127) return true;
+    return false;
+  }
+  if (net.isIP(ip) === 6) {
+    const normalized = ip.toLowerCase();
+    return (
+      normalized === '::1' ||
+      normalized.startsWith('fc') ||
+      normalized.startsWith('fd') ||
+      normalized.startsWith('fe80')
+    );
+  }
+  return true;
+};
+
+const resolveHost = async (hostname) => {
+  if (net.isIP(hostname)) return [hostname];
+  const records = await dns.lookup(hostname, { all: true });
+  return records.map((record) => record.address);
 };
 
 const maskSecret = (value) => {
@@ -254,10 +288,28 @@ router.post('/test-connection', requirePermission('settings.manage'), async (req
       .split(',')
       .map((item) => item.trim())
       .filter(Boolean);
+    const isProduction = process.env.NODE_ENV === 'production';
+    if (isProduction && !allowlist.length) {
+      return res.status(403).json({ error: 'Allowlist obrigatória em produção.' });
+    }
     if (allowlist.length) {
       const allowed = allowlist.some((domain) => parsed.hostname.endsWith(domain));
       if (!allowed) {
         return res.status(403).json({ error: 'Host não permitido para teste.' });
+      }
+    }
+
+    if (isProduction) {
+      const hostname = parsed.hostname.toLowerCase();
+      if (hostname === 'localhost' || hostname.endsWith('.local')) {
+        return res.status(403).json({ error: 'Host local bloqueado em produção.' });
+      }
+      const addresses = await resolveHost(hostname).catch(() => []);
+      if (!addresses.length) {
+        return res.status(400).json({ error: 'Não foi possível resolver o host.' });
+      }
+      if (addresses.some((ip) => isPrivateIp(ip))) {
+        return res.status(403).json({ error: 'Host aponta para rede privada.' });
       }
     }
 

@@ -5,6 +5,7 @@ import { Bars3Icon, BellIcon, MoonIcon, SunIcon, QuestionMarkCircleIcon } from '
 import { NavLink } from 'react-router-dom';
 import { UserContext } from '../App';
 import { useBranding } from '../lib/branding';
+import { applyThemePreferences, persistThemePreferences, readThemePreferences } from '../lib/theme';
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ');
@@ -23,8 +24,7 @@ export default function Navbar({ onMenuClick, onLogout, onHelp }) {
   });
 
   React.useEffect(() => {
-    document.body.classList.toggle('theme-dark', isDark);
-    window.localStorage.setItem('octoisp.theme', isDark ? 'dark' : 'light');
+    applyThemePreferences(readThemePreferences());
   }, [isDark]);
 
   React.useEffect(() => {
@@ -47,6 +47,17 @@ export default function Navbar({ onMenuClick, onLogout, onHelp }) {
     { name: 'Clientes', to: '/customers' },
     { name: 'Alertas', to: '/alerts' },
   ];
+
+  const handleToggleTheme = () => {
+    const current = readThemePreferences();
+    const next = { ...current, darkMode: !current.darkMode };
+    persistThemePreferences(next);
+    applyThemePreferences(next);
+    setIsDark(next.darkMode);
+    window.dispatchEvent(
+      new CustomEvent('octoisp-theme-change', { detail: { dark: next.darkMode } })
+    );
+  };
 
   return (
     <Disclosure as="nav" className="sticky top-0 z-30 border-b border-slate-200 bg-white/80 backdrop-blur">
@@ -101,7 +112,7 @@ export default function Navbar({ onMenuClick, onLogout, onHelp }) {
                 <div className="flex items-center">
                   <button
                     type="button"
-                    onClick={() => setIsDark((prev) => !prev)}
+                    onClick={handleToggleTheme}
                     className="mr-2 inline-flex items-center justify-center rounded-full border border-slate-200 p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-700"
                   >
                     <span className="sr-only">Alternar tema</span>
