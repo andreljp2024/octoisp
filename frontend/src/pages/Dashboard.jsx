@@ -100,20 +100,22 @@ function Dashboard() {
     };
   }, [expanded]);
 
-  const StatCard = ({ title, value, icon: Icon, change, color = 'blue' }) => {
+  const StatCard = ({ title, value, icon: Icon, change, color = 'blue', expandedMode }) => {
     const tone = colorClasses[color] || colorClasses.blue;
     return (
     <div className="card animate-rise overflow-hidden">
-      <div className="p-5">
+      <div className={expandedMode ? 'p-6' : 'p-5'}>
         <div className="flex items-center">
-          <div className={`flex-shrink-0 rounded-md p-3 ${tone.bg} ${tone.text}`}>
-            <Icon className="h-6 w-6" aria-hidden="true" />
+          <div className={`flex-shrink-0 rounded-md ${expandedMode ? 'p-3.5' : 'p-3'} ${tone.bg} ${tone.text}`}>
+            <Icon className={expandedMode ? 'h-7 w-7' : 'h-6 w-6'} aria-hidden="true" />
           </div>
           <div className="ml-5 w-0 flex-1">
             <dl>
               <dt className="text-sm font-medium text-gray-500 truncate">{title}</dt>
               <dd className="flex items-baseline">
-                <div className="text-2xl font-semibold text-gray-900">{value}</div>
+                <div className={expandedMode ? 'text-3xl font-semibold text-gray-900' : 'text-2xl font-semibold text-gray-900'}>
+                  {value}
+                </div>
                 {change && (
                   <div className="ml-2 flex items-baseline text-sm font-semibold text-green-600">
                     <ArrowTrendingUpIcon className="-ml-1 mr-0.5 flex-shrink-0 h-5 w-5 text-green-500" aria-hidden="true" />
@@ -130,7 +132,7 @@ function Dashboard() {
   };
 
   return (
-    <div>
+    <div className={expanded ? 'dashboard-expanded' : ''}>
       <div className="sm:flex sm:items-center sm:justify-between mb-6">
         <div>
           <h1 className="text-2xl font-semibold text-gray-900">Dashboard NOC</h1>
@@ -151,14 +153,20 @@ function Dashboard() {
           </button>
         </div>
       </div>
+      {expanded && (
+        <div className="mb-6 rounded-xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-700">
+          Modo expandido ativo: mais espaço para gráficos e indicadores.
+        </div>
+      )}
 
       {/* Grade de Estatísticas */}
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+      <div className={`grid grid-cols-1 ${expanded ? 'gap-6' : 'gap-5'} sm:grid-cols-2 lg:grid-cols-4 mb-8`}>
         <StatCard
           title="Dispositivos Totais"
           value={statsData?.totalDevices?.toLocaleString() || '...'}
           icon={ServerStackIcon}
           color="indigo"
+          expandedMode={expanded}
         />
         <StatCard
           title="Dispositivos Online"
@@ -166,18 +174,21 @@ function Dashboard() {
           icon={SignalIcon}
           change={statsData?.uptime ? `${statsData.uptime}%` : undefined}
           color="green"
+          expandedMode={expanded}
         />
         <StatCard
           title="Clientes Ativos"
           value={statsData?.totalCustomers?.toLocaleString() || '...'}
           icon={CheckCircleIcon}
           color="blue"
+          expandedMode={expanded}
         />
         <StatCard
           title="Alertas Ativos"
           value={statsData?.activeAlerts || '...'}
           icon={ExclamationTriangleIcon}
           color="red"
+          expandedMode={expanded}
         />
       </div>
 
@@ -185,7 +196,7 @@ function Dashboard() {
         {/* Gráfico de Tráfego */}
         <div className="lg:col-span-2 chart-surface animate-rise">
           <h2 className="text-lg font-medium text-gray-900 mb-4">Tráfego Semanal (Mbps)</h2>
-          <div className="h-80">
+          <div className={expanded ? 'h-96' : 'h-80'}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={trafficData?.data || []}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -207,7 +218,7 @@ function Dashboard() {
         {/* Status dos Dispositivos */}
         <div className="chart-surface animate-rise">
           <h2 className="text-lg font-medium text-gray-900 mb-4">Status dos Dispositivos</h2>
-          <div className="h-80">
+          <div className={expanded ? 'h-96' : 'h-80'}>
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -215,7 +226,7 @@ function Dashboard() {
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  outerRadius={80}
+                  outerRadius={expanded ? 110 : 80}
                   fill="#8884d8"
                   dataKey="value"
                   isAnimationActive
