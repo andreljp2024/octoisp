@@ -134,3 +134,18 @@ Consulte os guias de operação e arquitetura em `docs/`:
 - `docs/MELHORES_PRATICAS.md`
 - `docs/PRODUCAO.md`
 - `docs/INSTALACAO_VPS.md`
+- `docs/INSTALACAO_VPS.html`
+
+## Documentação e Deploy
+
+Para implantação em VPS com assistente web e emissão automática de certificado, utilize:
+
+- `docs/PRODUCAO.md` (modo produção, TLS e validações)
+- `docs/INSTALACAO_VPS.md` (passo a passo)
+- `docs/INSTALACAO_VPS.html` (guia visual)
+
+## Repositório
+
+Repositório oficial:
+
+- https://github.com/andreljp2024/octoisp.git
