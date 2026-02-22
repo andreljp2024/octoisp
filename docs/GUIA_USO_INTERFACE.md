@@ -9,6 +9,7 @@ Este guia descreve o fluxo de trabalho do NOC no OctoISP, com foco nas telas pri
 - `Dashboard NOC`: visão geral da rede e alertas críticos.
 - `Monitoramento de Rede`: saúde do backbone, latência e POPs.
 - `Monitoramento de Interfaces`: tráfego e erros por interface de equipamento.
+- `OLT/ONT`: inventário em tempo real com potência óptica, tráfego e clientes conectados.
 - `Ferramentas de Rede`: diagnósticos remotos com histórico por POP/Cliente.
 
 ## Ajuda Contextual Interativa
@@ -31,9 +32,11 @@ Para abrir, clique no ícone de ajuda no topo da interface.
    - Avalie latência e POPs degradados.
 4. **Monitoramento de Interfaces**
    - Cheque interfaces com erros ou tráfego anômalo.
-5. **Ferramentas de Rede**
+5. **OLT/ONT**
+   - Verifique potência óptica, status e clientes conectados por POP.
+6. **Ferramentas de Rede**
    - Execute diagnósticos vinculados a CPE/ONT.
-6. **Relatórios**
+7. **Relatórios**
    - Gere exportações de SLA quando solicitado.
 
 ## Tema e Preferências

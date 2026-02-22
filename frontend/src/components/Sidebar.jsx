@@ -11,6 +11,7 @@ import {
   CommandLineIcon,
   ServerStackIcon,
   WifiIcon,
+  SignalIcon,
   QuestionMarkCircleIcon
 } from '@heroicons/react/24/outline';
 
@@ -18,6 +19,7 @@ const navigation = [
   { name: 'Dashboard NOC', href: '/dashboard', icon: HomeIcon, permission: 'dashboard.view' },
   { name: 'Monitoramento de Rede', href: '/network-monitoring', icon: ServerStackIcon, permission: 'devices.view' },
   { name: 'Monitoramento de Dispositivos', href: '/devices', icon: ComputerDesktopIcon, permission: 'devices.view' },
+  { name: 'OLT/ONT', href: '/olt-ont', icon: SignalIcon, permission: 'devices.view' },
   { name: 'Interfaces', href: '/interface-monitoring', icon: WifiIcon, permission: 'devices.view' },
   { name: 'Descoberta Automática', href: '/discovery', icon: CommandLineIcon, permission: 'devices.discover' },
   { name: 'Clientes', href: '/customers', icon: UserGroupIcon, permission: 'customers.view' },

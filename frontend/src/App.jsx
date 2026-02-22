@@ -24,6 +24,7 @@ import Profile from './pages/Profile';
 import Discovery from './pages/Discovery';
 import PopMonitoring from './pages/PopMonitoring';
 import InterfaceMonitoring from './pages/InterfaceMonitoring';
+import OltOnt from './pages/OltOnt';
 import HelpIntegrations from './pages/HelpIntegrations';
 import SetupWizard from './pages/SetupWizard';
 import ErrorBoundary from './components/ErrorBoundary';
@@ -263,6 +264,10 @@ function App() {
 
                       {hasPermission('devices.view') && (
                         <Route path="/interface-monitoring" element={<InterfaceMonitoring />} />
+                      )}
+
+                      {hasPermission('devices.view') && (
+                        <Route path="/olt-ont" element={<OltOnt />} />
                       )}
 
                       {hasPermission('reports.view') && (
