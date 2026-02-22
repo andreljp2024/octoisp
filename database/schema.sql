@@ -215,6 +215,67 @@ CREATE TABLE user_provider_access (
     FOREIGN KEY (granted_by) REFERENCES auth.users(id)
 );
 
+-- Helper functions for admin policies (bypass RLS inside)
+CREATE OR REPLACE FUNCTION octoisp_is_admin_global()
+RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+SET row_security = off
+AS $$
+  SELECT EXISTS (
+    SELECT 1
+    FROM user_provider_access upa
+    JOIN roles r ON r.id = upa.role_id
+    WHERE upa.user_id = auth.uid()
+      AND r.name = 'admin_global'
+  );
+$$;
+
+CREATE OR REPLACE FUNCTION octoisp_is_admin_for_provider(p_provider_id uuid)
+RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+SET row_security = off
+AS $$
+  SELECT EXISTS (
+    SELECT 1
+    FROM user_provider_access upa
+    JOIN roles r ON r.id = upa.role_id
+    WHERE upa.user_id = auth.uid()
+      AND (
+        r.name = 'admin_global'
+        OR (r.name = 'admin_provider' AND upa.provider_id = p_provider_id)
+      )
+  );
+$$;
+
+CREATE OR REPLACE FUNCTION octoisp_can_manage_user(target_user_id uuid)
+RETURNS boolean
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+SET row_security = off
+AS $$
+  SELECT EXISTS (
+    SELECT 1
+    FROM user_provider_access admin_access
+    JOIN roles r ON r.id = admin_access.role_id
+    WHERE admin_access.user_id = auth.uid()
+      AND r.name IN ('admin_global', 'admin_provider')
+      AND (
+        r.name = 'admin_global'
+        OR admin_access.provider_id IN (
+          SELECT provider_id FROM user_provider_access upa WHERE upa.user_id = target_user_id
+        )
+      )
+  );
+$$;
+
 -- Create indexes for better performance
 CREATE INDEX idx_devices_provider_id ON devices(provider_id);
 CREATE INDEX idx_devices_customer_id ON devices(customer_id);
@@ -260,6 +321,72 @@ INSERT INTO permissions (id, name, description, module, action) VALUES
 (uuid_generate_v4(), 'tools.access', 'Access network tools', 'tools', 'access'),
 (uuid_generate_v4(), 'users.manage', 'Manage users', 'users', 'manage'),
 (uuid_generate_v4(), 'settings.manage', 'Manage system settings', 'settings', 'manage');
+
+-- RLS for RBAC tables (read for authenticated, write for admin_global)
+ALTER TABLE roles ENABLE ROW LEVEL SECURITY;
+DO $policy$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'public' AND tablename = 'roles' AND policyname = 'roles_read_policy'
+  ) THEN
+    CREATE POLICY roles_read_policy ON roles
+      FOR SELECT USING (auth.uid() IS NOT NULL);
+  END IF;
+END
+$policy$;
+
+ALTER TABLE permissions ENABLE ROW LEVEL SECURITY;
+DO $policy$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'public' AND tablename = 'permissions' AND policyname = 'permissions_read_policy'
+  ) THEN
+    CREATE POLICY permissions_read_policy ON permissions
+      FOR SELECT USING (auth.uid() IS NOT NULL);
+  END IF;
+END
+$policy$;
+
+ALTER TABLE role_permissions ENABLE ROW LEVEL SECURITY;
+DO $policy$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'public' AND tablename = 'role_permissions' AND policyname = 'role_permissions_read_policy'
+  ) THEN
+    CREATE POLICY role_permissions_read_policy ON role_permissions
+      FOR SELECT USING (auth.uid() IS NOT NULL);
+  END IF;
+END
+$policy$;
+
+ALTER TABLE user_permissions ENABLE ROW LEVEL SECURITY;
+DO $policy$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'public' AND tablename = 'user_permissions' AND policyname = 'user_permissions_isolation_policy'
+  ) THEN
+    CREATE POLICY user_permissions_isolation_policy ON user_permissions
+      FOR ALL USING (user_id = auth.uid() OR octoisp_can_manage_user(user_id));
+  END IF;
+END
+$policy$;
+
+ALTER TABLE user_provider_access ENABLE ROW LEVEL SECURITY;
+DO $policy$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'public' AND tablename = 'user_provider_access' AND policyname = 'user_provider_access_isolation_policy'
+  ) THEN
+    CREATE POLICY user_provider_access_isolation_policy ON user_provider_access
+      FOR ALL USING (user_id = auth.uid() OR octoisp_is_admin_for_provider(provider_id));
+  END IF;
+END
+$policy$;
 
 -- Audit log table for immutable audit trail
 CREATE TABLE audit_log (
@@ -405,6 +532,103 @@ BEGIN
   ) THEN
     CREATE POLICY tr069_templates_isolation_policy ON tr069_templates
       FOR ALL USING (provider_id IN (SELECT provider_id FROM user_provider_access WHERE user_id = auth.uid()));
+  END IF;
+END
+$policy$;
+
+-- Admin global override policies
+DO $policy$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'public' AND tablename = 'providers' AND policyname = 'providers_admin_global_policy'
+  ) THEN
+    CREATE POLICY providers_admin_global_policy ON providers
+      FOR ALL USING (octoisp_is_admin_global());
+  END IF;
+END
+$policy$;
+
+DO $policy$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'public' AND tablename = 'pops' AND policyname = 'pops_admin_global_policy'
+  ) THEN
+    CREATE POLICY pops_admin_global_policy ON pops
+      FOR ALL USING (octoisp_is_admin_global());
+  END IF;
+END
+$policy$;
+
+DO $policy$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'public' AND tablename = 'customers' AND policyname = 'customers_admin_global_policy'
+  ) THEN
+    CREATE POLICY customers_admin_global_policy ON customers
+      FOR ALL USING (octoisp_is_admin_global());
+  END IF;
+END
+$policy$;
+
+DO $policy$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'public' AND tablename = 'devices' AND policyname = 'devices_admin_global_policy'
+  ) THEN
+    CREATE POLICY devices_admin_global_policy ON devices
+      FOR ALL USING (octoisp_is_admin_global());
+  END IF;
+END
+$policy$;
+
+DO $policy$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'public' AND tablename = 'audit_log' AND policyname = 'audit_log_admin_global_policy'
+  ) THEN
+    CREATE POLICY audit_log_admin_global_policy ON audit_log
+      FOR ALL USING (octoisp_is_admin_global());
+  END IF;
+END
+$policy$;
+
+DO $policy$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'public' AND tablename = 'alerts' AND policyname = 'alerts_admin_global_policy'
+  ) THEN
+    CREATE POLICY alerts_admin_global_policy ON alerts
+      FOR ALL USING (octoisp_is_admin_global());
+  END IF;
+END
+$policy$;
+
+DO $policy$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'public' AND tablename = 'tr069_templates' AND policyname = 'tr069_templates_admin_global_policy'
+  ) THEN
+    CREATE POLICY tr069_templates_admin_global_policy ON tr069_templates
+      FOR ALL USING (octoisp_is_admin_global());
+  END IF;
+END
+$policy$;
+
+DO $policy$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'public' AND tablename = 'network_tool_runs' AND policyname = 'network_tool_runs_admin_global_policy'
+  ) THEN
+    CREATE POLICY network_tool_runs_admin_global_policy ON network_tool_runs
+      FOR ALL USING (octoisp_is_admin_global());
   END IF;
 END
 $policy$;

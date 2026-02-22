@@ -81,6 +81,20 @@ docker compose -f docker-compose.prod.yml --env-file .env.production --profile o
 - Testar falha controlada e recuperação.
 - Substituir respostas simuladas de ferramentas por execução real.
 
+## 7.1) Migrações de banco
+
+Se o banco já existe, aplique as migrações em ordem:
+
+```
+database/upgrade_v2.sql
+database/upgrade_v3.sql
+database/upgrade_v4.sql
+database/upgrade_v5.sql
+database/upgrade_v6.sql
+```
+
+Em instalações novas, execute `database/schema.sql` e depois as migrações acima.
+
 ## 10) Módulos ainda simulados
 
 Até o momento, os serviços abaixo são simulados e **não devem** ser usados em produção:
