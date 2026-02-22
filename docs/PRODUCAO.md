@@ -93,6 +93,7 @@ database/upgrade_v4.sql
 database/upgrade_v5.sql
 database/upgrade_v6.sql
 database/upgrade_v7.sql
+database/upgrade_v8.sql
 ```
 
 Em instalações novas, execute `database/schema.sql` e depois as migrações acima.

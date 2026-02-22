@@ -55,7 +55,7 @@ router.get('/', requirePermission('users.manage'), async (req, res) => {
           FROM auth.users u
           JOIN user_provider_access upa ON upa.user_id = u.id
           JOIN roles r ON r.id = upa.role_id
-          LEFT JOIN user_profiles up ON up.user_id = u.id
+          LEFT JOIN user_profiles up ON up.user_id = u.id AND up.provider_id = upa.provider_id
           WHERE upa.provider_id = $1
           ORDER BY upa.granted_at DESC
         `,
@@ -92,10 +92,10 @@ router.get('/me', async (req, res) => {
         `
           SELECT up.name, up.phone, up.avatar_url, up.status
           FROM user_profiles up
-          WHERE up.user_id = $1
+          WHERE up.user_id = $1 AND up.provider_id = $2
           LIMIT 1
         `,
-        [req.user.id]
+        [req.user.id, req.tenantId]
       )
     );
 
@@ -155,7 +155,7 @@ router.post('/', requirePermission('users.manage'), async (req, res) => {
         `
           INSERT INTO user_profiles (user_id, provider_id, name, phone, avatar_url, status)
           VALUES ($1, $2, $3, $4, $5, $6)
-          ON CONFLICT (user_id)
+          ON CONFLICT (user_id, provider_id)
           DO UPDATE SET
             name = EXCLUDED.name,
             phone = EXCLUDED.phone,
@@ -200,7 +200,7 @@ router.put('/me', async (req, res) => {
         `
           INSERT INTO user_profiles (user_id, provider_id, name, phone, avatar_url, status)
           VALUES ($1, $2, $3, $4, $5, $6)
-          ON CONFLICT (user_id)
+          ON CONFLICT (user_id, provider_id)
           DO UPDATE SET
             name = EXCLUDED.name,
             phone = EXCLUDED.phone,
@@ -252,7 +252,7 @@ router.put('/:id', requirePermission('users.manage'), async (req, res) => {
         `
           INSERT INTO user_profiles (user_id, provider_id, name, phone, avatar_url, status)
           VALUES ($1, $2, $3, $4, $5, $6)
-          ON CONFLICT (user_id)
+          ON CONFLICT (user_id, provider_id)
           DO UPDATE SET
             name = COALESCE(EXCLUDED.name, user_profiles.name),
             phone = COALESCE(EXCLUDED.phone, user_profiles.phone),
@@ -283,7 +283,10 @@ router.delete('/:id', requirePermission('users.manage'), async (req, res) => {
   try {
     const { id } = req.params;
     await withUser(req.user.id, async (client) => {
-      await client.query('DELETE FROM user_profiles WHERE user_id = $1', [id]);
+      await client.query('DELETE FROM user_profiles WHERE user_id = $1 AND provider_id = $2', [
+        id,
+        req.tenantId
+      ]);
       await client.query('DELETE FROM user_provider_access WHERE user_id = $1 AND provider_id = $2', [id, req.tenantId]);
     });
     return res.status(204).send();

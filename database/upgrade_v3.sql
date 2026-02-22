@@ -2,7 +2,7 @@
 
 -- User profiles (public schema)
 CREATE TABLE IF NOT EXISTS user_profiles (
-    user_id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
     provider_id UUID NOT NULL REFERENCES providers(id) ON DELETE CASCADE,
     name TEXT,
     phone TEXT,
@@ -11,6 +11,22 @@ CREATE TABLE IF NOT EXISTS user_profiles (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_constraint c
+    JOIN pg_class t ON t.oid = c.conrelid
+    JOIN pg_namespace n ON n.oid = t.relnamespace
+    WHERE n.nspname = 'public'
+      AND t.relname = 'user_profiles'
+      AND c.contype = 'p'
+  ) THEN
+    ALTER TABLE user_profiles ADD PRIMARY KEY (user_id, provider_id);
+  END IF;
+END
+$$;
 
 ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
 DO $policy$
