@@ -44,6 +44,7 @@ Para abrir, clique no ícone de ajuda no topo da interface.
 Em `Configurações`, ajuste:
 
 - Tema escuro para salas de NOC.
+- Paletas visuais (Skyline, Aurora, Circuit, Solar, Ocean).
 - Modo compacto para mais densidade de informação.
 - Redução de movimento para acessibilidade.
 - Alto contraste para ambientes com baixa iluminação.

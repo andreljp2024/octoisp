@@ -82,6 +82,7 @@ const Settings = () => {
           glow: true,
           highContrast: false,
           darkMode: window.localStorage.getItem('octoisp.theme') === 'dark',
+          palette: window.localStorage.getItem('octoisp.themePalette') || 'sky',
         };
   });
 
@@ -104,12 +105,16 @@ const Settings = () => {
   useEffect(() => {
     window.localStorage.setItem('octoisp.preferences', JSON.stringify(preferences));
     const body = document.body;
+    const palettes = ['sky', 'aurora', 'circuit', 'solar', 'ocean'];
     body.classList.toggle('app-compact', preferences.compact);
     body.classList.toggle('app-reduced-motion', preferences.reducedMotion);
     body.classList.toggle('app-glow', preferences.glow);
     body.classList.toggle('app-high-contrast', preferences.highContrast);
     body.classList.toggle('theme-dark', preferences.darkMode);
+    palettes.forEach((palette) => body.classList.remove(`theme-${palette}`));
+    body.classList.add(`theme-${preferences.palette || 'sky'}`);
     window.localStorage.setItem('octoisp.theme', preferences.darkMode ? 'dark' : 'light');
+    window.localStorage.setItem('octoisp.themePalette', preferences.palette || 'sky');
     window.dispatchEvent(
       new CustomEvent('octoisp-theme-change', { detail: { dark: preferences.darkMode } })
     );
@@ -784,6 +789,61 @@ const Settings = () => {
             </button>
           ))}
         </div>
+        <div className="mt-6">
+          <h3 className="text-sm font-semibold text-gray-900">Paleta de tema</h3>
+          <p className="text-xs text-gray-500">Escolha o estilo visual da operação.</p>
+          <div className="mt-3 grid gap-3 md:grid-cols-3">
+            {[
+              {
+                id: 'sky',
+                name: 'Skyline',
+                desc: 'Azul limpo com brilho suave.',
+                gradient: 'from-sky-400 via-indigo-400 to-emerald-400',
+              },
+              {
+                id: 'aurora',
+                name: 'Aurora',
+                desc: 'Verdes e violetas vibrantes.',
+                gradient: 'from-emerald-400 via-sky-400 to-indigo-500',
+              },
+              {
+                id: 'circuit',
+                name: 'Circuit',
+                desc: 'Tech neon e alto contraste.',
+                gradient: 'from-emerald-400 via-cyan-400 to-slate-900',
+              },
+              {
+                id: 'solar',
+                name: 'Solar',
+                desc: 'Âmbar e coral energéticos.',
+                gradient: 'from-amber-400 via-orange-500 to-rose-500',
+              },
+              {
+                id: 'ocean',
+                name: 'Ocean',
+                desc: 'Azul profundo com teal.',
+                gradient: 'from-blue-500 via-cyan-400 to-teal-400',
+              },
+            ].map((option) => (
+              <button
+                key={option.id}
+                type="button"
+                onClick={() => setPreferences((prev) => ({ ...prev, palette: option.id }))}
+                className={`rounded-xl border p-4 text-left transition ${
+                  preferences.palette === option.id
+                    ? 'border-sky-300 bg-sky-50'
+                    : 'border-gray-200 hover:border-sky-200 hover:bg-sky-50/50'
+                }`}
+              >
+                <div
+                  className={`h-10 w-full rounded-lg bg-gradient-to-r ${option.gradient}`}
+                />
+                <p className="mt-3 text-sm font-semibold text-gray-900">{option.name}</p>
+                <p className="text-xs text-gray-500">{option.desc}</p>
+              </button>
+            ))}
+          </div>
+        </div>
         <div className="mt-6 flex flex-wrap justify-end gap-2">
           <button
             type="button"
@@ -794,6 +854,7 @@ const Settings = () => {
                 glow: true,
                 highContrast: false,
                 darkMode: false,
+                palette: 'sky',
               })
             }
             className="rounded-md border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
