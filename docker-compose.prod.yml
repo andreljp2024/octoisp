@@ -1,0 +1,120 @@
+version: '3.8'
+
+services:
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.prod.conf:/etc/nginx/nginx.conf
+      - ./ssl/certs:/etc/nginx/ssl:ro
+      - ./certbot/www:/var/www/certbot
+      - ./certbot/conf:/etc/letsencrypt
+    depends_on:
+      - frontend
+      - api-gateway
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL}
+        VITE_AUTH_MODE: ${VITE_AUTH_MODE}
+        VITE_ALLOW_DEMO_LOGIN: ${VITE_ALLOW_DEMO_LOGIN}
+        VITE_SUPABASE_URL: ${VITE_SUPABASE_URL}
+        VITE_SUPABASE_ANON_KEY: ${VITE_SUPABASE_ANON_KEY}
+        VITE_GRAFANA_URL: ${VITE_GRAFANA_URL}
+    expose:
+      - "3000"
+    restart: unless-stopped
+
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    expose:
+      - "8000"
+    environment:
+      - NODE_ENV=production
+      - PORT=8000
+      - DATABASE_URL=${DATABASE_URL}
+      - METRICS_DB_URL=${METRICS_DB_URL}
+      - SUPABASE_JWT_SECRET=${SUPABASE_JWT_SECRET}
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+      - FRONTEND_URL=${FRONTEND_URL}
+      - ALLOWED_ORIGINS=${ALLOWED_ORIGINS}
+      - RATE_LIMIT_WINDOW_MS=${RATE_LIMIT_WINDOW_MS}
+      - RATE_LIMIT_MAX=${RATE_LIMIT_MAX}
+      - REDIS_URL=${REDIS_URL}
+      - TR069_SERVICE_URL=${TR069_SERVICE_URL}
+      - GRAFANA_URL=${GRAFANA_URL}
+      - SETUP_WIZARD_ENABLED=${SETUP_WIZARD_ENABLED}
+      - SETUP_WIZARD_TOKEN=${SETUP_WIZARD_TOKEN}
+      - SETUP_ROOT_DIR=/app-host
+      - SETUP_HOST_DIR=${SETUP_HOST_DIR}
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./:/app-host
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:8000/health', res => process.exit(res.statusCode === 200 ? 0 : 1)).on('error', () => process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  certbot:
+    build:
+      context: ./certbot
+      dockerfile: Dockerfile
+    volumes:
+      - ./certbot/www:/var/www/certbot
+      - ./certbot/conf:/etc/letsencrypt
+    restart: unless-stopped
+    profiles: ["optional-services"]
+
+  tr069-acs:
+    build:
+      context: ./services/tr069-acs
+      dockerfile: Dockerfile
+    expose:
+      - "7547"
+    environment:
+      - NODE_ENV=production
+      - REDIS_URL=${REDIS_URL}
+      - DATABASE_URL=${DATABASE_URL}
+      - ALLOW_SIMULATION=${ALLOW_SIMULATION}
+    restart: unless-stopped
+    profiles: ["optional-services"]
+
+  snmp-monitor:
+    build:
+      context: ./services/snmp-monitor
+      dockerfile: Dockerfile
+    expose:
+      - "7101"
+    environment:
+      - NODE_ENV=production
+      - REDIS_URL=${REDIS_URL}
+      - DATABASE_URL=${DATABASE_URL}
+      - METRICS_DB_URL=${METRICS_DB_URL}
+      - ALLOW_SIMULATION=${ALLOW_SIMULATION}
+    restart: unless-stopped
+    profiles: ["optional-services"]
+
+  alert-service:
+    build:
+      context: ./services/alert-service
+      dockerfile: Dockerfile
+    expose:
+      - "7102"
+    environment:
+      - NODE_ENV=production
+      - REDIS_URL=${REDIS_URL}
+      - DATABASE_URL=${DATABASE_URL}
+      - ALLOW_SIMULATION=${ALLOW_SIMULATION}
+    restart: unless-stopped
+    profiles: ["optional-services"]

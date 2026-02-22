@@ -1,0 +1,43 @@
+{
+  "name": "octoisp",
+  "version": "1.0.0",
+  "description": "Plataforma SaaS de Gerenciamento de Redes ISP Multi-Tenant",
+  "main": "index.js",
+  "scripts": {
+    "dev": "docker-compose up --build",
+    "build": "docker-compose build",
+    "start": "docker-compose up -d",
+    "stop": "docker-compose down",
+    "logs": "docker-compose logs -f",
+    "db:migrate": "cd database && npx prisma migrate dev",
+    "db:seed": "cd database && npx prisma db seed",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/octoisp/octoisp.git"
+  },
+  "keywords": [
+    "isp",
+    "network-management",
+    "tr069",
+    "snmp",
+    "multi-tenant",
+    "saas",
+    "pt-br"
+  ],
+  "author": "Equipe OctoISP",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/octoisp/octoisp/issues"
+  },
+  "homepage": "https://github.com/octoisp/octoisp#readme",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.39.0",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^18.11.18",
+    "typescript": "^4.9.4"
+  }
+}

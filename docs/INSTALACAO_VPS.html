@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>OctoISP · Deploy em VPS (Guia Visual)</title>
+    <style>
+      :root {
+        --bg: #0b1120;
+        --panel: #0f172a;
+        --panel-2: #111827;
+        --text: #e2e8f0;
+        --muted: #94a3b8;
+        --brand: #38bdf8;
+        --accent: #22c55e;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --border: #1f2937;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: "Manrope", "Segoe UI", system-ui, sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(circle at top left, rgba(56, 189, 248, 0.2), transparent 45%),
+          radial-gradient(circle at top right, rgba(34, 197, 94, 0.15), transparent 45%),
+          var(--bg);
+      }
+      .container {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 32px 20px 80px;
+      }
+      header {
+        display: grid;
+        gap: 16px;
+        padding: 24px;
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        background: linear-gradient(135deg, rgba(56,189,248,0.12), rgba(15,23,42,0.95));
+      }
+      header h1 {
+        margin: 0;
+        font-size: 32px;
+      }
+      header p {
+        margin: 0;
+        color: var(--muted);
+      }
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #0f172a;
+        background: var(--brand);
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-weight: 700;
+      }
+      .grid {
+        display: grid;
+        gap: 16px;
+      }
+      .grid.two {
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      }
+      .panel {
+        border: 1px solid var(--border);
+        background: var(--panel);
+        border-radius: 16px;
+        padding: 20px;
+      }
+      .panel h2 {
+        margin: 0 0 12px;
+        font-size: 18px;
+      }
+      .panel p {
+        margin: 0 0 10px;
+        color: var(--muted);
+      }
+      .step {
+        display: grid;
+        gap: 10px;
+        padding: 16px;
+        border-radius: 14px;
+        border: 1px solid var(--border);
+        background: var(--panel-2);
+      }
+      .step-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 600;
+      }
+      .step-title span {
+        width: 24px;
+        height: 24px;
+        border-radius: 8px;
+        background: var(--brand);
+        color: #0b1120;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 12px;
+      }
+      pre {
+        margin: 0;
+        background: #0b1220;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 12px;
+        color: #cbd5f5;
+        overflow-x: auto;
+        font-size: 13px;
+        line-height: 1.5;
+      }
+      .callout {
+        border-left: 4px solid var(--brand);
+        padding: 12px 14px;
+        background: rgba(56, 189, 248, 0.08);
+        border-radius: 12px;
+        color: var(--text);
+      }
+      .warning {
+        border-left-color: var(--warning);
+        background: rgba(245, 158, 11, 0.08);
+      }
+      .danger {
+        border-left-color: var(--danger);
+        background: rgba(239, 68, 68, 0.08);
+      }
+      .checklist li {
+        list-style: none;
+        margin: 8px 0;
+        padding-left: 24px;
+        position: relative;
+        color: var(--muted);
+      }
+      .checklist li::before {
+        content: "✔";
+        color: var(--accent);
+        position: absolute;
+        left: 0;
+        top: 0;
+      }
+      .footer {
+        text-align: center;
+        margin-top: 40px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .svg-flow {
+        width: 100%;
+        max-width: 100%;
+        border-radius: 16px;
+        border: 1px solid var(--border);
+        background: #0b1220;
+        padding: 16px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <div class="badge">Guia Visual · Deploy em VPS</div>
+        <h1>OctoISP · Instalação e Deploy em VPS</h1>
+        <p>
+          Um passo a passo ilustrado para subir o OctoISP em produção sem complicação,
+          com TLS automático, validação de conexões e assistente web.
+        </p>
+      </header>
+
+      <section class="grid two" style="margin-top: 24px;">
+        <div class="panel">
+          <h2>Pré‑requisitos</h2>
+          <ul class="checklist">
+            <li>VPS Linux (Ubuntu/Debian)</li>
+            <li>Domínio apontado para o IP da VPS</li>
+            <li>Portas 80 e 443 liberadas</li>
+            <li>Docker + Docker Compose</li>
+          </ul>
+        </div>
+        <div class="panel">
+          <h2>Fluxo de deploy</h2>
+          <svg class="svg-flow" viewBox="0 0 640 200" aria-label="Fluxo de deploy">
+            <rect x="20" y="50" width="140" height="90" rx="12" fill="#38bdf8" opacity="0.15"/>
+            <rect x="200" y="50" width="160" height="90" rx="12" fill="#22c55e" opacity="0.15"/>
+            <rect x="400" y="50" width="200" height="90" rx="12" fill="#f59e0b" opacity="0.15"/>
+            <text x="50" y="90" fill="#e2e8f0" font-size="12">VPS</text>
+            <text x="230" y="90" fill="#e2e8f0" font-size="12">Assistente</text>
+            <text x="430" y="90" fill="#e2e8f0" font-size="12">Deploy</text>
+            <line x1="160" y1="95" x2="200" y2="95" stroke="#38bdf8" stroke-width="4"/>
+            <line x1="360" y1="95" x2="400" y2="95" stroke="#38bdf8" stroke-width="4"/>
+          </svg>
+        </div>
+      </section>
+
+      <section class="panel" style="margin-top: 24px;">
+        <h2>Passo a passo rápido</h2>
+        <div class="grid">
+          <div class="step">
+            <div class="step-title"><span>1</span> Preparar VPS</div>
+            <pre><code>sudo apt update && sudo apt upgrade -y
+sudo apt install -y git curl ufw
+sudo ufw allow OpenSSH
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+sudo ufw enable</code></pre>
+          </div>
+          <div class="step">
+            <div class="step-title"><span>2</span> Instalar Docker</div>
+            <pre><code>curl -fsSL https://get.docker.com | sh
+sudo usermod -aG docker $USER
+newgrp docker</code></pre>
+          </div>
+          <div class="step">
+            <div class="step-title"><span>3</span> Clonar e preparar env</div>
+            <pre><code>git clone &lt;seu-repo&gt; octoisp
+cd octoisp
+cp .env.production.example .env.production</code></pre>
+          </div>
+          <div class="step">
+            <div class="step-title"><span>4</span> Subir stack base</div>
+            <pre><code>docker compose -f docker-compose.prod.yml --env-file .env.production up -d</code></pre>
+          </div>
+          <div class="step">
+            <div class="step-title"><span>5</span> Abrir o assistente web</div>
+            <pre><code>https://seu-dominio/setup</code></pre>
+            <div class="callout">
+              No assistente você configura Supabase, bancos, TLS (Let’s Encrypt) e
+              dispara o deploy com logs em tempo real.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="grid two" style="margin-top: 24px;">
+        <div class="panel">
+          <h2>Checklist de configuração</h2>
+          <ul class="checklist">
+            <li>FRONTEND_URL e ALLOWED_ORIGINS preenchidos</li>
+            <li>SUPABASE_URL + ANON_KEY + JWT_SECRET</li>
+            <li>DATABASE_URL, METRICS_DB_URL, REDIS_URL</li>
+            <li>SETUP_WIZARD_ENABLED e TOKEN</li>
+            <li>SETUP_HOST_DIR com caminho absoluto</li>
+          </ul>
+        </div>
+        <div class="panel">
+          <h2>Boas práticas</h2>
+          <div class="callout warning">
+            Para produção pública, use TLS válido (Let’s Encrypt ou certificado oficial).
+          </div>
+          <div class="callout danger" style="margin-top: 12px;">
+            Após o deploy, desative o assistente (`SETUP_WIZARD_ENABLED=false`).
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" style="margin-top: 24px;">
+        <h2>Renovação automática do Let’s Encrypt</h2>
+        <p>Ative o container de renovação:</p>
+        <pre><code>docker compose -f docker-compose.prod.yml --env-file .env.production --profile optional-services up -d certbot</code></pre>
+      </section>
+
+      <section class="panel" style="margin-top: 24px;">
+        <h2>Checagem rápida</h2>
+        <pre><code>docker compose -f docker-compose.prod.yml ps
+curl -k https://seu-dominio/health</code></pre>
+      </section>
+
+      <div class="footer">
+        OctoISP · Guia Visual de Deploy em VPS
+      </div>
+    </div>
+  </body>
+</html>

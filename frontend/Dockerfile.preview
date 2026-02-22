@@ -1,0 +1,44 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Copiar arquivos de dependências
+COPY package*.json ./
+
+# Instalar dependências (incluindo dependências de desenvolvimento para preview)
+RUN npm ci
+
+# Copiar o resto dos arquivos
+COPY . .
+
+# Permitir variáveis VITE_* no build de preview
+ARG VITE_API_URL
+ARG VITE_AUTH_MODE
+ARG VITE_ALLOW_DEMO_LOGIN
+ARG VITE_SUPABASE_URL
+ARG VITE_SUPABASE_ANON_KEY
+ARG VITE_GRAFANA_URL
+ARG VITE_PREVIEW_MODE
+
+ENV VITE_API_URL=$VITE_API_URL
+ENV VITE_AUTH_MODE=$VITE_AUTH_MODE
+ENV VITE_ALLOW_DEMO_LOGIN=$VITE_ALLOW_DEMO_LOGIN
+ENV VITE_SUPABASE_URL=$VITE_SUPABASE_URL
+ENV VITE_SUPABASE_ANON_KEY=$VITE_SUPABASE_ANON_KEY
+ENV VITE_GRAFANA_URL=$VITE_GRAFANA_URL
+ENV VITE_PREVIEW_MODE=$VITE_PREVIEW_MODE
+
+# Substituir o ambiente de produção por ambiente de preview
+ENV NODE_ENV=preview
+
+# Gerar o build da aplicação
+RUN npm run build
+
+# Instalar servidor de produção para servir os arquivos estáticos
+RUN npm install -g serve
+
+# Expor porta
+EXPOSE 3000
+
+# Comando para rodar a aplicação (bind em todas as interfaces)
+CMD ["serve", "-s", "build", "-l", "tcp://0.0.0.0:3000"]

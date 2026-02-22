@@ -1,0 +1,100 @@
+EXECUTANDO O AMBIENTE DE DEMONSTRAÇÃO DO OCTOISP
+===============================================
+
+O OctoISP é uma plataforma completa de gerenciamento de redes ISP com foco em
+monitoramento, provisionamento e gerenciamento de redes em larga escala.
+
+AMBIENTE DE DEMONSTRAÇÃO
+------------------------
+
+O ambiente de demonstração inclui:
+
+- Um provedor de demonstração
+- Um POP de demonstração
+- 10 clientes de demonstração
+- 20 dispositivos de demonstração
+- 15 alertas de demonstração
+- 1 template TR-069 de demonstração
+- Um usuário de demonstração com credenciais:
+  * E-mail: demo@octoisp.local
+  * Senha: Demo123!@#
+
+PRÉ-REQUISITOS
+--------------
+
+- Docker Desktop instalado e em execução
+- WSL 2 instalado e configurado (já instalado com versão 2.6.3.0)
+- Ubuntu instalado via WSL2 (já instalado)
+- Pelo menos 4GB de RAM disponíveis (8GB recomendado)
+- 5GB de espaço em disco disponível
+
+PASSOS PARA EXECUÇÃO
+--------------------
+
+1. Instale o Docker Desktop (caso ainda não esteja instalado):
+   - Baixe em: https://www.docker.com/products/docker-desktop
+   - Execute o instalador como administrador
+   - Siga as instruções do assistente de instalação
+   - Durante a instalação, certifique-se de habilitar o uso do WSL 2
+   - Reinicie o computador após a instalação
+
+2. Após a instalação, inicie o Docker Desktop e aguarde o ícone ficar verde
+
+3. Verifique se o Docker está funcionando corretamente:
+   - Abra um novo terminal
+   - Execute: docker --version
+   - Execute: docker-compose --version
+
+4. Execute o ambiente de demonstração:
+   - Execute: run_demo.bat (no Windows)
+   - Ou: ./run_demo.sh (no Linux/macOS)
+
+5. Acesse a plataforma em: http://localhost:8080
+
+6. Faça login com as credenciais de demonstração:
+   - E-mail: demo@octoisp.local
+   - Senha: Demo123!@#
+
+FUNCIONALIDADES DISPONÍVEIS
+---------------------------
+
+- Dashboard NOC com dados simulados
+- Visualização de dispositivos, clientes e POPs
+- Visualização de alertas simulados
+- Acesso a relatórios de demonstração
+- Demonstração de ferramentas de rede
+- Interface PWA com recursos offline
+
+LIMITAÇÕES DO AMBIENTE DE DEMONSTRAÇÃO
+--------------------------------------
+
+- Nenhuma operação de escrita é permitida
+- Nenhuma configuração real é aplicada aos dispositivos
+- O acesso é somente leitura para a maioria dos módulos
+- Os dados são redefinidos a cada inicialização do ambiente
+
+PARAR O AMBIENTE DE DEMONSTRAÇÃO
+-------------------------------
+
+Para parar o ambiente de demonstração, execute:
+  docker-compose -f docker-compose.preview.yml down
+
+SUPORTE
+-------
+
+Se encontrar problemas, verifique:
+
+1. Se o Docker Desktop está em execução
+2. Se todos os contêineres iniciaram corretamente
+3. Se nenhuma outra aplicação está usando a porta 8080
+4. Consulte os logs com: docker-compose -f docker-compose.preview.yml logs
+
+DICAS IMPORTANTES
+-----------------
+
+Devido ao sistema não ter o Docker instalado automaticamente, você precisará:
+
+1. Baixar e instalar o Docker Desktop manualmente
+2. Após a instalação, reiniciar o computador
+3. Iniciar o Docker Desktop e aguardar o ícone na bandeja do sistema ficar verde
+4. Em seguida, executar o script run_demo.bat para iniciar o ambiente de demonstração

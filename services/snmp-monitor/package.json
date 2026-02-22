@@ -1,0 +1,19 @@
+{
+  "name": "octoisp-snmp-monitor",
+  "version": "1.0.0",
+  "description": "SNMP monitoring service for OctoISP platform",
+  "main": "monitoramento_simulado.js",
+  "scripts": {
+    "start": "node monitoramento_simulado.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["octoisp", "snmp", "monitoring"],
+  "author": "OctoISP Team",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.6.0",
+    "express": "^4.18.0",
+    "moment": "^2.29.4",
+    "net-snmp": "^3.1.0"
+  }
+}

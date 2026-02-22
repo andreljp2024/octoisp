@@ -1,0 +1,130 @@
+services:
+  # Nginx reverse proxy para preview
+  nginx-preview:
+    image: nginx:alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx-preview/nginx.conf:/etc/nginx/nginx.conf
+      - ./ssl/certs:/etc/nginx/ssl
+    depends_on:
+      - frontend-preview
+      - api-gateway-preview
+    restart: unless-stopped
+
+  # Frontend PWA para preview
+  frontend-preview:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.preview
+      args:
+        VITE_API_URL: /api
+        VITE_AUTH_MODE: demo
+        VITE_ALLOW_DEMO_LOGIN: true
+        VITE_PREVIEW_MODE: true
+        VITE_SUPABASE_URL: http://supabase-preview:8000
+        VITE_SUPABASE_ANON_KEY: dummy_anon_key
+    expose:
+      - "3000"
+    environment:
+      - REACT_APP_API_URL=http://localhost:8080/api
+      - REACT_APP_PREVIEW_MODE=true
+    restart: unless-stopped
+
+  # API Gateway para preview
+  api-gateway-preview:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile.preview
+    expose:
+      - "8000"
+    environment:
+      - NODE_ENV=preview
+      - SUPABASE_URL=${SUPABASE_URL:-http://supabase-preview:8000}
+      - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY:-dummy_anon_key}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY:-dummy_service_role_key}
+      - DATABASE_URL=postgresql://octoisp:password@supabase-db-preview:5432/octoisp_preview
+      - METRICS_DB_URL=postgresql://octoisp:password@timescaledb-preview:5432/metrics_preview
+      - TR069_SERVICE_URL=http://tr069-acs-preview:7548
+    restart: unless-stopped
+
+  # Banco de dados para preview (dados de demonstração)
+  supabase-db-preview:
+    image: postgres:15
+    ports:
+      - "5435:5432"
+    environment:
+      - POSTGRES_DB=octoisp_preview
+      - POSTGRES_USER=octoisp
+      - POSTGRES_PASSWORD=password
+    volumes:
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./database/demo_setup.sql:/docker-entrypoint-initdb.d/02-demo-data.sql
+      - preview_postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  # Banco de dados de métricas para preview
+  timescaledb-preview:
+    image: timescale/timescaledb:latest-pg15
+    ports:
+      - "5436:5432"
+    environment:
+      - POSTGRES_DB=metrics_preview
+      - POSTGRES_USER=octoisp
+      - POSTGRES_PASSWORD=password
+    volumes:
+      - preview_timescale_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  # Redis para preview
+  redis-preview:
+    image: redis:alpine
+    ports:
+      - "6380:6379"
+    volumes:
+      - preview_redis_data:/data
+    restart: unless-stopped
+
+  # Serviço TR-069 para preview (modo limitado)
+  tr069-acs-preview:
+    build:
+      context: ./services/tr069-acs
+      dockerfile: Dockerfile.preview
+    expose:
+      - "7548"
+    environment:
+      - NODE_ENV=preview
+      - REDIS_URL=redis://redis-preview:6379
+      - DATABASE_URL=postgresql://octoisp:password@supabase-db-preview:5432/octoisp_preview
+      - PREVIEW_MODE=true
+    restart: unless-stopped
+
+  # Serviço SNMP para preview (modo simulado)
+  snmp-monitor-preview:
+    build:
+      context: ./services/snmp-monitor
+      dockerfile: Dockerfile.preview
+    environment:
+      - NODE_ENV=preview
+      - REDIS_URL=redis://redis-preview:6379
+      - DATABASE_URL=postgresql://octoisp:password@supabase-db-preview:5432/octoisp_preview
+      - METRICS_DB_URL=postgresql://octoisp:password@timescaledb-preview:5432/metrics_preview
+      - PREVIEW_MODE=true
+    restart: unless-stopped
+
+  # Serviço de alertas para preview
+  alert-service-preview:
+    build:
+      context: ./services/alert-service
+      dockerfile: Dockerfile.preview
+    environment:
+      - NODE_ENV=preview
+      - REDIS_URL=redis://redis-preview:6379
+      - DATABASE_URL=postgresql://octoisp:password@supabase-db-preview:5432/octoisp_preview
+      - PREVIEW_MODE=true
+    restart: unless-stopped
+
+volumes:
+  preview_postgres_data:
+  preview_timescale_data:
+  preview_redis_data:
