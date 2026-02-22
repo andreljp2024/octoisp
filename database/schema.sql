@@ -297,6 +297,39 @@ CREATE INDEX idx_user_provider_access_provider ON user_provider_access(provider_
 CREATE INDEX idx_user_provider_access_user ON user_provider_access(user_id);
 CREATE INDEX idx_user_profiles_provider ON user_profiles(provider_id);
 
+-- Check constraints for enums / status fields
+ALTER TABLE providers
+  ADD CONSTRAINT providers_status_check
+  CHECK (status IN ('active', 'inactive', 'suspended'));
+
+ALTER TABLE pops
+  ADD CONSTRAINT pops_status_check
+  CHECK (status IN ('active', 'inactive', 'maintenance'));
+
+ALTER TABLE customers
+  ADD CONSTRAINT customers_status_check
+  CHECK (status IN ('active', 'inactive', 'suspended', 'pending'));
+
+ALTER TABLE devices
+  ADD CONSTRAINT devices_status_check
+  CHECK (status IN ('online', 'offline', 'degraded', 'warning', 'critical', 'maintenance'));
+
+ALTER TABLE devices
+  ADD CONSTRAINT devices_type_check
+  CHECK (device_type IN ('cpe', 'ont', 'router', 'switch', 'ap', 'olt', 'core', 'unknown'));
+
+ALTER TABLE devices
+  ADD CONSTRAINT devices_connection_check
+  CHECK (connection_type IN ('ethernet', 'fiber', 'wifi', 'lte', 'wireless', 'dsl', 'other'));
+
+ALTER TABLE alerts
+  ADD CONSTRAINT alerts_severity_check
+  CHECK (severity IN ('info', 'warning', 'critical'));
+
+ALTER TABLE alerts
+  ADD CONSTRAINT alerts_status_check
+  CHECK (status IN ('open', 'acknowledged', 'resolved', 'closed'));
+
 -- Insert default roles
 INSERT INTO roles (id, name, description, is_system_role) VALUES
 (uuid_generate_v4(), 'admin_global', 'Global administrator with access to all providers', true),
