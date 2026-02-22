@@ -59,6 +59,12 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
+const tenantLimiter = rateLimit({
+  windowMs: Number(process.env.RATE_LIMIT_WINDOW_MS || 15 * 60 * 1000),
+  max: Number(process.env.RATE_LIMIT_TENANT_MAX || (isPreviewEnv ? 1500 : 300)),
+  keyGenerator: (req) => req.user?.id || req.ip
+});
+
 // Parse JSON bodies
 app.use(compression());
 app.use(express.json({ limit: '10mb' }));
@@ -116,7 +122,7 @@ app.get('/health', (req, res) => {
 app.use('/api/setup', require('./routes/setup'));
 
 // Auth + tenant identification middleware (Supabase-compatible)
-app.use('/api', authMiddleware);
+app.use('/api', authMiddleware, tenantLimiter);
 
 // Placeholder routes for various services
 // These would be replaced with actual proxy logic to backend services

@@ -21,6 +21,7 @@ Copie `.env.production.example` para `.env.production` e preencha:
 - `INTEGRATION_ALLOWLIST` para restringir testes de conexão.
 - `ALLOW_SIMULATION` apenas se for necessário rodar serviços simulados em staging.
 - `LETSENCRYPT_ENABLED`, `LETSENCRYPT_EMAIL` e `LETSENCRYPT_DOMAINS` para TLS automático.
+- `RATE_LIMIT_TENANT_MAX` para limitar requisições por usuário/tenant.
 
 ## 3) Autenticação
 
@@ -91,6 +92,7 @@ database/upgrade_v3.sql
 database/upgrade_v4.sql
 database/upgrade_v5.sql
 database/upgrade_v6.sql
+database/upgrade_v7.sql
 ```
 
 Em instalações novas, execute `database/schema.sql` e depois as migrações acima.
