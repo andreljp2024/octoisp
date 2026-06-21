@@ -2,10 +2,10 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-COPY package*.json ./
+COPY services/snmp-monitor/package*.json ./
 RUN npm install --omit=dev
 
-COPY . .
+COPY services/snmp-monitor/ ./
 
 ENV NODE_ENV=production
 

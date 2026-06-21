@@ -2,10 +2,10 @@ FROM node:18-alpine
 
 WORKDIR /app
 
-COPY package*.json ./
+COPY services/alert-service/package*.json ./
 RUN npm install --omit=dev
 
-COPY . .
+COPY services/alert-service/ ./
 
 ENV NODE_ENV=production
 

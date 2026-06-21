@@ -4,10 +4,10 @@ WORKDIR /app
 
 RUN apk add --no-cache docker-cli curl
 
-COPY package*.json ./
+COPY api-gateway/package*.json ./
 RUN npm install
 
-COPY . .
+COPY api-gateway/ ./
 
 EXPOSE 8000
 
