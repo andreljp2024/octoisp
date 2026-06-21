@@ -1,5 +1,7 @@
 -- OctoISP upgrade v2: multi-tenant NOC features
 
+SET search_path TO public, auth;
+
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- Provider settings (JSONB)

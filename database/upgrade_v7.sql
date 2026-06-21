@@ -1,5 +1,7 @@
 -- OctoISP upgrade v7: indexes for performance
 
+SET search_path TO public, auth;
+
 CREATE INDEX IF NOT EXISTS idx_alerts_provider_status_created
   ON alerts (provider_id, status, created_at DESC);
 

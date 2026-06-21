@@ -1,5 +1,7 @@
 -- OctoISP upgrade v3: user profiles and report scheduling
 
+SET search_path TO public, auth;
+
 -- User profiles (public schema)
 CREATE TABLE IF NOT EXISTS user_profiles (
     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,

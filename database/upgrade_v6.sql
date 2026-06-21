@@ -1,5 +1,7 @@
 -- OctoISP upgrade v6: RLS hardening and admin policies
 
+SET search_path TO public, auth;
+
 CREATE OR REPLACE FUNCTION octoisp_is_admin_global()
 RETURNS boolean
 LANGUAGE sql

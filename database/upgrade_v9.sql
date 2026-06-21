@@ -1,5 +1,7 @@
 -- OctoISP upgrade v9: check constraints for status/enums
 
+SET search_path TO public, auth;
+
 DO $$
 BEGIN
   IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'providers')

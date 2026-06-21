@@ -3,26 +3,15 @@ const PDFDocument = require('pdfkit');
 const { Parser } = require('json2csv');
 const router = express.Router();
 const { withUser } = require('../db');
-const { queryMetricsAsUser, withMetricsUser } = require('../metrics');
+const { queryMetricsAsUser } = require('../metrics');
 const { requirePermission } = require('../middleware/requirePermission');
 
 const bytesToTb = (bytes) => `${(bytes / (1024 ** 4)).toFixed(2)} TB`;
 
 const withScopedUser = (req, handler) =>
-  withUser(req.user.id, async (client) => {
-    if (req.role === 'admin_global') {
-      await client.query('SET LOCAL row_security = off');
-    }
-    return handler(client);
-  });
+  withUser(req.user.id, handler);
 
 const queryMetrics = (req, text, params = []) => {
-  if (req.role === 'admin_global') {
-    return withMetricsUser(req.user.id, async (client) => {
-      await client.query('SET LOCAL row_security = off');
-      return client.query(text, params);
-    });
-  }
   return queryMetricsAsUser(req.user.id, text, params);
 };
 

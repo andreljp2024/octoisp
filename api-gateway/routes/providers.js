@@ -27,7 +27,6 @@ router.get('/', requirePermission('providers.view'), async (req, res) => {
 
     const result = await withUser(req.user.id, async (client) => {
       if (isGlobalAdmin && scope === 'all') {
-        await client.query('SET LOCAL row_security = off');
         return client.query(
           `
             SELECT p.*,
@@ -103,7 +102,6 @@ router.post('/', requirePermission('providers.manage'), async (req, res) => {
     const slug = payload.slug || name.toLowerCase().replace(/\s+/g, '-').slice(0, 50);
 
     const result = await withUser(req.user.id, async (client) => {
-      await client.query('SET LOCAL row_security = off');
       const created = await client.query(
         `
           INSERT INTO providers (
@@ -208,7 +206,6 @@ router.delete('/:id', requirePermission('providers.manage'), async (req, res) =>
   try {
     const { id } = req.params;
     const result = await withUser(req.user.id, async (client) => {
-      await client.query('SET LOCAL row_security = off');
       return client.query('DELETE FROM providers WHERE id = $1 RETURNING id', [id]);
     });
 
