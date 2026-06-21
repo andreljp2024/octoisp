@@ -1,81 +1,60 @@
 import React from 'react';
 import { Fragment, useContext } from 'react';
+import PropTypes from 'prop-types';
 import { Disclosure, Menu, Transition } from '@headlessui/react';
 import { Bars3Icon, BellIcon, MoonIcon, SunIcon, QuestionMarkCircleIcon } from '@heroicons/react/24/outline';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import { UserContext } from '../App';
 import { useBranding } from '../lib/branding';
-import { applyThemePreferences, persistThemePreferences, readThemePreferences } from '../lib/theme';
+import { quickNavItems } from '../lib/navigation';
 
 function classNames(...classes) {
   return classes.filter(Boolean).join(' ');
 }
 
-export default function Navbar({ onMenuClick, onLogout, onHelp }) {
-  const userContext = useContext(UserContext);
+function Navbar({ onMenuClick, onLogout, onHelp, hasPermission }) {
+  const location = useLocation();
   const branding = useBranding();
-  const userProfile = userContext?.userProfile || {
-    name: 'Operador',
-    email: 'operador@octoisp.local',
-    avatarUrl: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
-  };
+  const { userProfile } = useContext(UserContext);
   const [isDark, setIsDark] = React.useState(() => {
-    return window.localStorage.getItem('octoisp.theme') === 'dark';
+    if (typeof window === 'undefined') return false;
+    return window.matchMedia('(prefers-color-scheme: dark)').matches;
   });
 
   React.useEffect(() => {
-    applyThemePreferences(readThemePreferences());
+    if (typeof document === 'undefined') return;
+    document.documentElement.classList.toggle('dark', isDark);
   }, [isDark]);
 
   React.useEffect(() => {
-    const handleThemeChange = (event) => {
-      const next = Boolean(event?.detail?.dark);
-      setIsDark(next);
-    };
-    window.addEventListener('octoisp-theme-change', handleThemeChange);
-    return () => window.removeEventListener('octoisp-theme-change', handleThemeChange);
-  }, []);
+    if (location.pathname === '/login') {
+      return;
+    }
+  }, [location.pathname]);
 
-  const userNavigation = [
-    { name: 'Meu perfil', href: '/profile' },
-    { name: 'Configurações', href: '/settings' },
-  ];
+  const visibleQuickNavItems = quickNavItems.filter((item) =>
+    item.permission ? (hasPermission ? hasPermission(item.permission) : true) : true
+  );
 
-  const navItems = [
-    { name: 'Dashboard', to: '/dashboard' },
-    { name: 'Dispositivos', to: '/devices' },
-    { name: 'Clientes', to: '/customers' },
-    { name: 'Alertas', to: '/alerts' },
-  ];
-
-  const handleToggleTheme = () => {
-    const current = readThemePreferences();
-    const next = { ...current, darkMode: !current.darkMode };
-    persistThemePreferences(next);
-    applyThemePreferences(next);
-    setIsDark(next.darkMode);
-    window.dispatchEvent(
-      new CustomEvent('octoisp-theme-change', { detail: { dark: next.darkMode } })
-    );
-  };
+  const handleToggleTheme = () => setIsDark((prev) => !prev);
 
   return (
-    <Disclosure as="nav" className="sticky top-0 z-30 border-b border-slate-200 bg-white/80 backdrop-blur">
+    <Disclosure as="nav" className="bg-white/95 backdrop-blur border-b border-slate-200">
       {({ open }) => (
         <>
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between h-16">
+          <div className="mx-auto max-w-[1600px] px-4 sm:px-6 lg:px-8">
+            <div className="flex h-16 justify-between">
               <div className="flex items-center">
+                <button
+                  type="button"
+                  onClick={onMenuClick}
+                  className="inline-flex items-center justify-center rounded-md p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-sky-500 lg:hidden"
+                >
+                  <span className="sr-only">Abrir menu lateral</span>
+                  <Bars3Icon className="h-6 w-6" aria-hidden="true" />
+                </button>
                 <div className="flex-shrink-0 flex items-center">
-                  <button
-                    type="button"
-                    className="inline-flex items-center justify-center rounded-md p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus:ring-2 focus:ring-sky-500 lg:hidden"
-                    onClick={onMenuClick}
-                  >
-                    <span className="sr-only">Abrir menu principal</span>
-                    <Bars3Icon className="block h-6 w-6" aria-hidden="true" />
-                  </button>
-                  <div className="hidden lg:flex items-center gap-2">
+                  <div className="flex items-center gap-3">
                     {branding.logoUrl ? (
                       <img
                         src={branding.logoUrl}
@@ -88,7 +67,7 @@ export default function Navbar({ onMenuClick, onLogout, onHelp }) {
                 </div>
                 <div className="hidden sm:ml-6 sm:block">
                   <div className="flex space-x-4">
-                    {navItems.map((item) => (
+                    {visibleQuickNavItems.map((item) => (
                       <NavLink
                         key={item.name}
                         to={item.to}
@@ -191,7 +170,7 @@ export default function Navbar({ onMenuClick, onLogout, onHelp }) {
 
           <Disclosure.Panel className="sm:hidden border-t border-slate-200 bg-white/95 backdrop-blur">
             <div className="px-2 pt-2 pb-3 space-y-1">
-              {navItems.map((item) => (
+              {visibleQuickNavItems.map((item) => (
                 <Disclosure.Button
                   key={item.name}
                   as={NavLink}
@@ -258,3 +237,10 @@ export default function Navbar({ onMenuClick, onLogout, onHelp }) {
     </Disclosure>
   );
 }
+
+Navbar.propTypes = {
+  onMenuClick: PropTypes.func.isRequired,
+  onLogout: PropTypes.func.isRequired,
+  onHelp: PropTypes.func.isRequired,
+  hasPermission: PropTypes.func,
+};

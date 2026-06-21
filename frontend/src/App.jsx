@@ -1,4 +1,5 @@
-import React, { useState, createContext, useContext } from 'react';
+import React, { useState, createContext } from 'react';
+import PropTypes from 'prop-types';
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { Toaster } from 'react-hot-toast';
@@ -84,6 +85,10 @@ const LanguageProvider = ({ children }) => {
   );
 };
 
+LanguageProvider.propTypes = {
+  children: PropTypes.node.isRequired,
+};
+
 export { LanguageContext, LanguageProvider, UserContext };
 
 const queryClient = new QueryClient({
@@ -101,7 +106,6 @@ function App() {
   const [helpOpen, setHelpOpen] = React.useState(false);
   const [isAuthenticated, setIsAuthenticated] = React.useState(false);
   const [userPermissions, setUserPermissions] = React.useState([]);
-  const [language, setLanguage] = React.useState(i18n.language);
   const [userProfile, setUserProfile] = React.useState({
     name: 'Administrador',
     email: 'admin@octoisp.local',
@@ -112,19 +116,6 @@ function App() {
       'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80',
   });
   
-  // Update language state when i18n language changes
-  React.useEffect(() => {
-    const handleLanguageChanged = (lng) => {
-      setLanguage(lng);
-    };
-    
-    i18n.on('languageChanged', handleLanguageChanged);
-    
-    return () => {
-      i18n.off('languageChanged', handleLanguageChanged);
-    };
-  }, []);
-
   // Mock function to check permissions - in real app this would come from auth
   const hasPermission = (permission) => {
     return userPermissions.includes(permission);
@@ -215,6 +206,9 @@ function App() {
                 hasPermission={hasPermission}
                 collapsed={sidebarCollapsed}
                 onToggleCollapse={() => setSidebarCollapsed((prev) => !prev)}
+                userProfile={userProfile}
+                onHelp={() => setHelpOpen(true)}
+                onLogout={handleLogout}
               />
 
                 <div className="flex flex-col flex-1 w-0 overflow-hidden">
@@ -222,6 +216,7 @@ function App() {
                     onMenuClick={() => setSidebarOpen(true)}
                     onLogout={handleLogout}
                     onHelp={() => setHelpOpen(true)}
+                    hasPermission={hasPermission}
                   />
 
                 <main className="flex-1 relative z-0 overflow-y-auto py-8 focus:outline-none">
