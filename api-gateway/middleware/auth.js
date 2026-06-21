@@ -85,14 +85,14 @@ const authMiddleware = async (req, res, next) => {
     const authHeader = req.headers.authorization || '';
     const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
     const claims = decodeToken(token);
-    let userId = claims?.sub || req.headers['x-user-id'];
+    let userId = claims?.sub;
 
     if (!jwtSecret && !isPreview && token) {
       return res.status(401).json({ error: 'Token inválido (sem chave JWT configurada).' });
     }
 
     if (!userId && isPreview) {
-      userId = demoUserId;
+      userId = req.headers['x-user-id'] || demoUserId;
     }
 
     if (!userId) {

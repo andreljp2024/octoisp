@@ -24,6 +24,8 @@ const withUser = async (userId, handler) => {
   try {
     await client.query('BEGIN');
     await setAuthContext(client, userId);
+    await client.query('SET LOCAL search_path TO public, auth');
+    await client.query('SET LOCAL ROLE octoisp_api');
     const result = await handler(client);
     await client.query('COMMIT');
     return result;

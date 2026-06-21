@@ -5,12 +5,7 @@ const { queryMetricsAsUser } = require('../metrics');
 const { requirePermission } = require('../middleware/requirePermission');
 
 const withScopedUser = (req, handler) =>
-  withUser(req.user.id, async (client) => {
-    if (req.role === 'admin_global') {
-      await client.query('SET LOCAL row_security = off');
-    }
-    return handler(client);
-  });
+  withUser(req.user.id, handler);
 
 const seededRandom = (seed) => {
   const x = Math.sin(seed) * 10000;

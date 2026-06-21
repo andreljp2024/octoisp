@@ -1,5 +1,7 @@
 -- OctoISP upgrade v8: user_profiles multi-tenant key (user_id, provider_id)
 
+SET search_path TO public, auth;
+
 DO $$
 BEGIN
   IF EXISTS (

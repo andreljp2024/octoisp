@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { withUser } = require('../db');
-const { queryMetricsAsUser, withMetricsUser } = require('../metrics');
+const { queryMetricsAsUser } = require('../metrics');
 const { requirePermission } = require('../middleware/requirePermission');
 
 const mapStatus = (status) => {
@@ -22,20 +22,9 @@ const parsePercent = (value) => {
 };
 
 const withScopedUser = (req, handler) =>
-  withUser(req.user.id, async (client) => {
-    if (req.role === 'admin_global') {
-      await client.query('SET LOCAL row_security = off');
-    }
-    return handler(client);
-  });
+  withUser(req.user.id, handler);
 
 const queryMetrics = (req, text, params = []) => {
-  if (req.role === 'admin_global') {
-    return withMetricsUser(req.user.id, async (client) => {
-      await client.query('SET LOCAL row_security = off');
-      return client.query(text, params);
-    });
-  }
   return queryMetricsAsUser(req.user.id, text, params);
 };
 

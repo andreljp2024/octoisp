@@ -4,12 +4,7 @@ const { withUser } = require('../db');
 const { requirePermission } = require('../middleware/requirePermission');
 
 const withScopedUser = (req, handler) =>
-  withUser(req.user.id, async (client) => {
-    if (req.role === 'admin_global') {
-      await client.query('SET LOCAL row_security = off');
-    }
-    return handler(client);
-  });
+  withUser(req.user.id, handler);
 
 // GET /api/alerts - List all alerts
 router.get('/', requirePermission('alerts.view'), async (req, res) => {

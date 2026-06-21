@@ -1,9 +1,29 @@
--- Add device/customer/pop references to network tools history
-ALTER TABLE network_tool_runs
-  ADD COLUMN IF NOT EXISTS device_id UUID REFERENCES devices(id) ON DELETE SET NULL,
-  ADD COLUMN IF NOT EXISTS customer_id UUID REFERENCES customers(id) ON DELETE SET NULL,
-  ADD COLUMN IF NOT EXISTS pop_id UUID REFERENCES pops(id) ON DELETE SET NULL;
+-- OctoISP upgrade v5: ajustar unicidade de serial por provedor
 
-CREATE INDEX IF NOT EXISTS network_tool_runs_device_idx ON network_tool_runs(device_id);
-CREATE INDEX IF NOT EXISTS network_tool_runs_customer_idx ON network_tool_runs(customer_id);
-CREATE INDEX IF NOT EXISTS network_tool_runs_pop_idx ON network_tool_runs(pop_id);
+SET search_path TO public, auth;
+
+DO $$
+DECLARE
+  constraint_name TEXT;
+BEGIN
+  SELECT c.conname INTO constraint_name
+  FROM pg_constraint c
+  JOIN pg_class t ON t.oid = c.conrelid
+  JOIN pg_namespace n ON n.oid = t.relnamespace
+  WHERE n.nspname = 'public'
+    AND t.relname = 'devices'
+    AND c.contype = 'u'
+    AND (
+      SELECT array_agg(att.attname::text ORDER BY att.attnum)
+      FROM unnest(c.conkey) AS colnum
+      JOIN pg_attribute att ON att.attrelid = t.oid AND att.attnum = colnum
+    ) = ARRAY['serial_number']::text[];
+
+  IF constraint_name IS NOT NULL THEN
+    EXECUTE format('ALTER TABLE public.devices DROP CONSTRAINT %I', constraint_name);
+  END IF;
+END
+$$;
+
+CREATE UNIQUE INDEX IF NOT EXISTS devices_provider_serial_unique
+  ON public.devices (provider_id, serial_number);
